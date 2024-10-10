@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カメラで人物検出</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <style>
+        video {
+            width: 640px;
+            height: 480px;
+        }
+    </style>
+</head>
+<body>
+    <video id="webcam" autoplay></video>
+    <script>
+        async function setupCamera() {
+            const webcamElement = document.getElementById('webcam');
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true
+            });
+            webcamElement.srcObject = stream;
+            return new Promise((resolve) => {
+                webcamElement.onloadedmetadata = () => {
+                    resolve(webcamElement);
+                };
+            });
+        }
+
+        async function detectPerson() {
+            const webcamElement = await setupCamera();
+            const model = await cocoSsd.load();
+
+            // 定期的に人物検出を行う
+            setInterval(async () => {
+                const predictions = await model.detect(webcamElement);
+                for (let i = 0; i < predictions.length; i++) {
+                    if (predictions[i].class === 'person') {
+                        // 人物が検出されたら新しいタブを開く
+                        window.open('https://hiroki-hp.vercel.app/', '_blank');
+                        return;
+                    }
+                }
+            }, 1000); // 1秒ごとにチェック
+        }
+
+        detectPerson();
+    </script>
+</body>
+</html>
